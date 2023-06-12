@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Oxide.Plugins
 {
-	[Info("Diseases", "TheRustingDeadRick", "1.0")]
-	[Description("Players can be inflicted with custom diseases that can be spread to others")]
+	[Info("Diseases", "TheRustingDeadRick", "2.1.1")]
+	[Description("Players can be inflicted with disease that can be spread to others")]
 	public class Diseases : CovalencePlugin
 	{
 		public static Diseases PLUGIN;
@@ -89,40 +89,38 @@ namespace Oxide.Plugins
 
 		void OnEntityDeath(BasePlayer player, HitInfo info)
 		{
-		    if (player.IsValid())
-		    {
-		        foreach (string diseasename in diseaseManager.GetPlayerInfections(player))
-		        {
-		            Disease disease = diseaseManager.GetDisease(diseasename);
-		            if (disease != null)
-		            {
-		                bool killedByDisease = WasCauseOfDeath(player, info, disease);
-		                if (killedByDisease)
-		                {
-		                    diseaseStats[disease.name].playersKilled.count += 1;
-		                    if (config.BroadcastDeathMessages)
-		                        BasePlayer.activePlayerList.ToList().ForEach(x => x.ChatMessage(Lang("Death", player.UserIDString, player.displayName, Color(disease.name, config.DiseaseNameColor))));
-		                }
-		                if (debug)
-		                    PLUGIN.Puts("Died: " + player.displayName + " removing of " + disease.name);
+			if (player.IsValid())
+			{
+				foreach (string diseasename in diseaseManager.GetPlayerInfections(player))
+				{
+					Disease disease = diseaseManager.GetDisease(diseasename);
+					if (disease != null)
+					{
+						bool killedByDisease = WasCauseOfDeath(player, info, disease);
+						if (killedByDisease)
+						{
+							diseaseStats[disease.name].playersKilled.count += 1;
+							if (config.BroadcastDeathMessages)
+								BasePlayer.activePlayerList.ToList().ForEach(x => x.ChatMessage(Lang("Death", player.UserIDString, player.displayName, Color(disease.name, config.DiseaseNameColor))));
+						}
+						if (debug)
+							PLUGIN.Puts("Died: " + player.displayName + " removing of " + disease.name);
 
-		                diseaseStats[disease.name].activeInfected.count -= 1;
-		                diseaseManager.RemoveInfected(player, disease);
-		
-		                // Check if the disease has been removed
-		                if (diseaseManager.GetPlayerInfections(player).Contains(diseasename))
-		                {
-		                    // If not, try removing it again
-		                    diseaseManager.RemoveInfected(player, disease);
-		                }
-		
-		                Interface.CallHook("OnInfectedDeath", player, disease, killedByDisease);
-		            }
-		        }
-		        RefreshIndicator(player);
-		    }
+						diseaseStats[disease.name].activeInfected.count -= 1;
+						diseaseManager.RemoveInfected(player, disease);
+
+                				if (diseaseManager.GetPlayerInfections(player).Contains(diseasename))
+						{
+                    // If not, try removing it again
+                    diseaseManager.RemoveInfected(player, disease);
+                				}
+
+                				Interface.CallHook("OnInfectedDeath", player, disease, killedByDisease);
+           				 }
+        			}	
+     			 	RefreshIndicator(player);
+    			}
 		}
-
 
 		object OnPlayerSleep(BasePlayer player)
 		{
